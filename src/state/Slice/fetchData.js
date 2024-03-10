@@ -1,61 +1,60 @@
-// 1.async actions - api calling
-// 2.api url - https://jsonplaceholder.typicode.com/todos
-// 3.middleware- redux-thunk
-// 4.axios api
-
-// create store and import
+// store import
 const { default: axios } = require("axios");
 const { createStore, applyMiddleware } = require("redux");
 const { thunk } = require("redux-thunk");
 
-// constants
-const Get_Todos_Request = "GET_TODOS_REQUEST";
-const Get_Todos_Success = "GET_TODOS_SUCCESS";
-const Get_Todos_Failed = "GET_TODOS_FAIL";
-const Api_Url = "https://jsonplaceholder.typicode.com/todos";
+// 1.async actions - api calling
+// 2.api url - https://jsonplaceholder.typicode.com/todos
+// 3.middleware - redux-thunk
+// 4.axios api
 
-// states make
+// constants
+const GET_TODOS_REQUEST = "Get_Todos_Request";
+const GET_TODOS_SUCCESS = "Get_Todos_Success";
+const GET_TODOS_FAILED = "Get_Todos_Fail";
+const API_URL = "https://jsonplaceholder.typicode.com/todos";
+
+// state
 const initialTodosState = {
   todos: [],
   isLoading: false,
   error: null,
 };
 
-// actions create
+// actions
 const getTodosRequest = () => {
   return {
-    type: Get_Todos_Request,
+    type: GET_TODOS_REQUEST,
   };
 };
 const getTodosSuccess = (todos) => {
   return {
-    type: Get_Todos_Success,
+    type: GET_TODOS_SUCCESS,
     payload: todos,
   };
 };
-
 const getTodosFail = (error) => {
   return {
-    type: Get_Todos_Failed,
+    type: GET_TODOS_FAILED,
     payload: error,
   };
 };
 
-//reducer
+// reducers
 const todosReducer = (state = initialTodosState, action) => {
   switch (action.type) {
-    case Get_Todos_Request:
+    case GET_TODOS_REQUEST:
       return {
         ...state,
         isLoading: true,
       };
-    case Get_Todos_Success:
+    case GET_TODOS_SUCCESS:
       return {
         ...state,
         isLoading: false,
         todos: action.payload,
       };
-    case Get_Todos_Failed:
+    case GET_TODOS_FAILED:
       return {
         ...state,
         error: action.payload,
@@ -70,11 +69,17 @@ const fetchData = () => {
   return (dispatch) => {
     dispatch(getTodosRequest());
     axios
-      .get(Api_Url)
+      .get(API_URL)
       .then((res) => {
-        const todos = res.data;
-        const titles = todos.map((todo) => todo.title);
-        dispatch(getTodosSuccess(titles));
+        const todoData = res.data;
+        const todoIdTitleComplete = todoData.map((todo) => {
+          return {
+            id: todo.id,
+            title: todo.title,
+            completed: todo.completed,
+          };
+        });
+        dispatch(getTodosSuccess(todoIdTitleComplete));
       })
       .catch((error) => {
         const errorMessage = error.message;
@@ -82,7 +87,6 @@ const fetchData = () => {
       });
   };
 };
-
 // store
 const store = createStore(todosReducer, applyMiddleware(thunk));
 
@@ -90,4 +94,5 @@ store.subscribe(() => {
   console.log(store.getState());
 });
 
+// store dispatch
 store.dispatch(fetchData());
